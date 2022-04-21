@@ -169,7 +169,7 @@ describe(contractName, function () {
             await network.provider.send("evm_increaseTime", [debatingPeriodDuration])
 
             await contractDao.finishProposal(proposalsNumber)
-            await expect((await contractDao.proposals([proposalsNumber])).status).to.be.false
+            await expect((await contractDao.proposals([proposalsNumber])).result).to.be.false
         })
         it("Any user can finish votes", async function () {
             await contractDao.connect(acc2).vote(proposalsNumber, true)
@@ -178,9 +178,25 @@ describe(contractName, function () {
             await contractDao.connect(acc2).finishProposal(proposalsNumber)
 
             expect((await contractDao.proposals([proposalsNumber])).votes).to.be.equal(1)
-            expect((await contractDao.proposals([proposalsNumber])).status).to.be.equal(true)
+            expect((await contractDao.proposals([proposalsNumber])).result).to.be.equal(true)
         })
 
+        it("Checking that calldata has been running", async function () {
+            let totalSupply = await contractUsdc.totalSupply()
+            await contractDao.connect(acc2).vote(proposalsNumber, true)
+            await network.provider.send("evm_increaseTime", [debatingPeriodDuration])
+            await contractDao.finishProposal(proposalsNumber)
+
+            await expect(await contractUsdc.totalSupply()).to.be.equal(totalSupply.add(100))
+        })
+        it("Checking that calldata has been running", async function () {
+            let totalSupply = await contractUsdc.totalSupply()
+            await contractDao.connect(acc2).vote(proposalsNumber, true)
+            await network.provider.send("evm_increaseTime", [debatingPeriodDuration])
+            await contractDao.connect(acc2).finishProposal(proposalsNumber)
+
+            await expect(contractDao.finishProposal(proposalsNumber)).to.be.revertedWith("This proposal has been already closed")
+        })
 
     })
 

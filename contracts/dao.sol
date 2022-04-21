@@ -28,6 +28,7 @@ contract Dao {
         int votes;
         uint endDate;
         uint votedCounter;
+        bool result;
         bool status;
     }
 
@@ -79,7 +80,6 @@ contract Dao {
 
         if (users[msg.sender].frozenTime < proposals[proposalId].endDate)
             users[msg.sender].frozenTime = proposals[proposalId].endDate;
-
         if (choice)
             proposals[proposalId].votes += int(users[msg.sender].deposit);
         else
@@ -93,17 +93,18 @@ contract Dao {
 
     function finishProposal(uint proposalId) external
     {
+        require(proposals[proposalId].status == false, "This proposal has been already closed");
         require(block.timestamp > proposals[proposalId].endDate, "Time for a vote is not up");
 
         if (proposals[proposalId].votes > 0 && proposals[proposalId].votedCounter >= _minimumQuorum)
         {
             runProposal(proposalId);
-            proposals[proposalId].status = true;
+            proposals[proposalId].result = true;
         }
         else
-            proposals[proposalId].status = false;
-
-        emit resultProposal(proposalId, proposals[proposalId].status);
+            proposals[proposalId].result = false;
+        proposals[proposalId].status = true;
+        emit resultProposal(proposalId, proposals[proposalId].result);
     }
 
     function runProposal(uint proposalId) private
