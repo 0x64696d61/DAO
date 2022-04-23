@@ -57,6 +57,7 @@ contract Dao {
         require(block.timestamp > users[msg.sender].frozenTime, "Time for a vote is not up");
 
         _token.transfer(msg.sender, users[msg.sender].deposit);
+        users[msg.sender].deposit = 0;
         emit userWithdrawal(msg.sender, users[msg.sender].deposit);
 
     }
